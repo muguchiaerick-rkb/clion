@@ -36,7 +36,7 @@ Build **Euler**, a domain-specific AI assistant that handles:
 - Reserving and pricing foundations
 - Capital/risk measures (VaR/TVaR)
 
-Use `/home/runner/work/clion/clion/docs/euler-ai/02-domain-scope-actuarial-math.md`.
+Use `docs/euler-ai/02-domain-scope-actuarial-math.md`.
 
 ---
 
@@ -47,7 +47,7 @@ Use `/home/runner/work/clion/clion/docs/euler-ai/02-domain-scope-actuarial-math.
 - Build synthetic risk datasets for safe experimentation
 - Add citation metadata for traceability
 
-Use `/home/runner/work/clion/clion/docs/euler-ai/03-data-requirements-and-schema.md`.
+Use `docs/euler-ai/03-data-requirements-and-schema.md`.
 
 ---
 
