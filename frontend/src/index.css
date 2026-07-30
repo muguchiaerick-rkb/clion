@@ -1,0 +1,287 @@
+:root {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.5;
+}
+
+html[data-theme='dark'] {
+  --bg: #090b10;
+  --panel: #121722;
+  --text: #ecf0ff;
+  --muted: #a0a7bf;
+  --primary: #5aa0ff;
+  --danger: #ff5f6d;
+  --border: #242b3a;
+}
+
+html[data-theme='light'] {
+  --bg: #f5f7fc;
+  --panel: #ffffff;
+  --text: #131722;
+  --muted: #4e5568;
+  --primary: #2563eb;
+  --danger: #dc2626;
+  --border: #d9dfec;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+.button,
+.secondary,
+.danger {
+  border-radius: 0.6rem;
+  border: 1px solid var(--border);
+  padding: 0.55rem 0.9rem;
+  cursor: pointer;
+  background: var(--panel);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.button {
+  background: var(--primary);
+  color: white;
+  border-color: transparent;
+}
+
+.danger {
+  background: transparent;
+  color: var(--danger);
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.4rem;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: color-mix(in srgb, var(--bg) 95%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.brand {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.3rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: flex-start;
+}
+
+.card-list,
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.card,
+.panel,
+.empty-state {
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  padding: 1rem;
+  background: var(--panel);
+}
+
+.card-top-row,
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.card-top-row {
+  justify-content: space-between;
+}
+
+.meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem 0.9rem;
+  font-size: 0.92rem;
+  color: var(--muted);
+  margin-bottom: 0.8rem;
+}
+
+.pill {
+  font-size: 0.8rem;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+}
+
+.pill-active {
+  background: rgba(22, 163, 74, 0.2);
+  color: #22c55e;
+}
+
+.pill-archived {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.share-url {
+  color: var(--muted);
+  word-break: break-word;
+}
+
+.form-grid {
+  display: grid;
+  gap: 0.8rem;
+  max-width: 640px;
+}
+
+.form-grid label,
+.panel label {
+  display: grid;
+  gap: 0.4rem;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  color: inherit;
+  padding: 0.6rem;
+}
+
+.checkbox-row {
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-row input {
+  width: auto;
+}
+
+.file-list,
+.changelog-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.9rem 0 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.file-list li,
+.changelog-list li {
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  padding: 0.6rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.file-list span {
+  color: var(--muted);
+  font-size: 0.88rem;
+  display: block;
+}
+
+.inline-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.6rem;
+}
+
+.error-text {
+  color: var(--danger);
+}
+
+.cover-image {
+  max-width: 100%;
+  border-radius: 0.6rem;
+  border: 1px solid var(--border);
+}
+
+.markdown-body {
+  margin-top: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  margin-top: 1rem;
+}
+
+.markdown-body pre {
+  padding: 0.8rem;
+  border-radius: 0.5rem;
+  overflow: auto;
+}
+
+@media (max-width: 680px) {
+  .section-header {
+    flex-direction: column;
+  }
+
+  .meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .inline-form {
+    grid-template-columns: 1fr;
+  }
+}
