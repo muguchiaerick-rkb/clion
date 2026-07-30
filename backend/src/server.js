@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
 const fs = require('fs/promises');
 const { randomUUID } = require('crypto');
@@ -21,11 +22,41 @@ const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
 
 app.use(cors({ origin: FRONTEND_ORIGIN }));
 app.use(express.json({ limit: '10mb' }));
+app.use(rateLimit({
+  windowMs: 60 * 1000,
+  limit: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+}));
+
+const fileRouteLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const allowedExtensions = new Set(['.md', '.pdf', '.docx', '.png', '.jpg', '.jpeg', '.gif', '.webp']);
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function parseBoolean(value) {
   return value === true || value === 'true';
+}
+
+function isValidUuid(value) {
+  return UUID_PATTERN.test(value);
+}
+
+function validateUuidParam(paramName) {
+  return (req, res, next) => {
+    const value = req.params[paramName];
+    if (!isValidUuid(value)) {
+      res.status(400).json({ error: `Invalid ${paramName}.` });
+      return;
+    }
+
+    next();
+  };
 }
 
 function parseProjectPayload(payload) {
@@ -126,7 +157,7 @@ app.get('/api/projects', async (_req, res) => {
   res.json(sortProjects(projects));
 });
 
-app.get('/api/projects/:projectId', requireProject, async (req, res) => {
+app.get('/api/projects/:projectId', validateUuidParam('projectId'), requireProject, async (req, res) => {
   res.json(req.project);
 });
 
@@ -143,7 +174,7 @@ app.post('/api/projects', async (req, res) => {
   res.status(201).json(project);
 });
 
-app.put('/api/projects/:projectId', requireProject, async (req, res) => {
+app.put('/api/projects/:projectId', validateUuidParam('projectId'), requireProject, async (req, res) => {
   const parsed = parseProjectPayload(req.body);
 
   if (parsed.error) {
@@ -161,12 +192,12 @@ app.put('/api/projects/:projectId', requireProject, async (req, res) => {
   res.json(updatedProject);
 });
 
-app.delete('/api/projects/:projectId', requireProject, async (req, res) => {
+app.delete('/api/projects/:projectId', validateUuidParam('projectId'), requireProject, async (req, res) => {
   await removeProject(req.params.projectId);
   res.status(204).send();
 });
 
-app.post('/api/projects/:projectId/files', requireProject, upload.array('files', 20), async (req, res) => {
+app.post('/api/projects/:projectId/files', validateUuidParam('projectId'), fileRouteLimiter, requireProject, upload.array('files', 20), async (req, res) => {
   const files = Array.isArray(req.files) ? req.files : [];
 
   if (files.length === 0) {
@@ -197,7 +228,7 @@ app.post('/api/projects/:projectId/files', requireProject, upload.array('files',
   res.status(201).json(updatedProject);
 });
 
-app.post('/api/projects/:projectId/changelog', requireProject, async (req, res) => {
+app.post('/api/projects/:projectId/changelog', validateUuidParam('projectId'), requireProject, async (req, res) => {
   const message = typeof req.body.message === 'string' ? req.body.message.trim() : '';
 
   if (!message) {
@@ -215,7 +246,7 @@ app.post('/api/projects/:projectId/changelog', requireProject, async (req, res) 
   res.status(201).json(updatedProject);
 });
 
-app.put('/api/projects/:projectId/cover', requireProject, async (req, res) => {
+app.put('/api/projects/:projectId/cover', validateUuidParam('projectId'), requireProject, async (req, res) => {
   const coverImageFileId = typeof req.body.coverImageFileId === 'string' ? req.body.coverImageFileId : null;
 
   if (coverImageFileId) {
@@ -236,7 +267,7 @@ app.put('/api/projects/:projectId/cover', requireProject, async (req, res) => {
   res.json(updatedProject);
 });
 
-app.delete('/api/projects/:projectId/files/:fileId', requireProject, async (req, res) => {
+app.delete('/api/projects/:projectId/files/:fileId', validateUuidParam('projectId'), validateUuidParam('fileId'), fileRouteLimiter, requireProject, async (req, res) => {
   const file = req.project.files.find((item) => item.id === req.params.fileId);
 
   if (!file) {
@@ -270,7 +301,7 @@ async function findProjectFile(project, fileId) {
   return { file, fullPath };
 }
 
-app.get('/api/projects/:projectId/files/:fileId/download', requireProject, async (req, res) => {
+app.get('/api/projects/:projectId/files/:fileId/download', validateUuidParam('projectId'), validateUuidParam('fileId'), fileRouteLimiter, requireProject, async (req, res) => {
   const found = await findProjectFile(req.project, req.params.fileId);
 
   if (!found) {
@@ -281,7 +312,7 @@ app.get('/api/projects/:projectId/files/:fileId/download', requireProject, async
   res.download(found.fullPath, found.file.originalName);
 });
 
-app.get('/api/projects/:projectId/files/:fileId/content', requireProject, async (req, res) => {
+app.get('/api/projects/:projectId/files/:fileId/content', validateUuidParam('projectId'), validateUuidParam('fileId'), fileRouteLimiter, requireProject, async (req, res) => {
   const found = await findProjectFile(req.project, req.params.fileId);
 
   if (!found) {
@@ -298,7 +329,7 @@ app.get('/api/projects/:projectId/files/:fileId/content', requireProject, async 
   res.type('text/markdown').send(text);
 });
 
-app.get('/api/public/:shareId', async (req, res) => {
+app.get('/api/public/:shareId', validateUuidParam('shareId'), async (req, res) => {
   const project = await getProjectByShareId(req.params.shareId);
 
   if (!project || !project.isPublic) {
@@ -309,7 +340,7 @@ app.get('/api/public/:shareId', async (req, res) => {
   res.json(toPublicProject(project));
 });
 
-app.get('/api/public/:shareId/files/:fileId/download', async (req, res) => {
+app.get('/api/public/:shareId/files/:fileId/download', validateUuidParam('shareId'), validateUuidParam('fileId'), fileRouteLimiter, async (req, res) => {
   const project = await getProjectByShareId(req.params.shareId);
 
   if (!project || !project.isPublic) {
@@ -327,7 +358,7 @@ app.get('/api/public/:shareId/files/:fileId/download', async (req, res) => {
   res.download(found.fullPath, found.file.originalName);
 });
 
-app.get('/api/public/:shareId/files/:fileId/content', async (req, res) => {
+app.get('/api/public/:shareId/files/:fileId/content', validateUuidParam('shareId'), validateUuidParam('fileId'), fileRouteLimiter, async (req, res) => {
   const project = await getProjectByShareId(req.params.shareId);
 
   if (!project || !project.isPublic) {

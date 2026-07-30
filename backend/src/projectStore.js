@@ -5,7 +5,15 @@ const { randomUUID } = require('crypto');
 const STORAGE_ROOT = path.resolve(__dirname, '../../storage');
 const DATA_DIR = path.join(STORAGE_ROOT, 'data');
 const PROJECTS_DIR = path.join(STORAGE_ROOT, 'projects');
+const PROJECTS_DIR_RESOLVED = path.resolve(PROJECTS_DIR);
 const DATA_FILE = path.join(DATA_DIR, 'projects.json');
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function ensureSafeId(id, label = 'id') {
+  if (!UUID_PATTERN.test(id)) {
+    throw new Error(`Invalid ${label}.`);
+  }
+}
 
 async function ensureStorage() {
   await fs.mkdir(DATA_DIR, { recursive: true });
@@ -66,11 +74,12 @@ async function saveProject(project) {
 }
 
 async function removeProject(projectId) {
+  ensureSafeId(projectId, 'project id');
   const store = await readStore();
   store.projects = store.projects.filter((project) => project.id !== projectId);
   await writeStore(store);
 
-  const folder = path.join(PROJECTS_DIR, projectId);
+  const folder = projectFolder(projectId);
   await fs.rm(folder, { recursive: true, force: true });
 }
 
@@ -94,7 +103,18 @@ function newProject(payload) {
 }
 
 function projectFolder(projectId) {
-  return path.join(PROJECTS_DIR, projectId);
+  ensureSafeId(projectId, 'project id');
+  const safeProjectId = path.basename(projectId);
+  if (safeProjectId !== projectId) {
+    throw new Error('Invalid project id.');
+  }
+
+  const resolvedPath = path.resolve(path.join(PROJECTS_DIR, safeProjectId));
+  if (!resolvedPath.startsWith(`${PROJECTS_DIR_RESOLVED}${path.sep}`)) {
+    throw new Error('Invalid project path.');
+  }
+
+  return resolvedPath;
 }
 
 module.exports = {

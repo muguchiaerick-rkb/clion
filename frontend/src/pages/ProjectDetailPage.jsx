@@ -38,26 +38,22 @@ export default function ProjectDetailPage() {
 
   const shareUrl = project?.isPublic ? `${window.location.origin}/share/${project.shareId}` : '';
 
-  async function loadProject() {
-    try {
-      setLoading(true);
-      setError('');
-      const data = await api.getProject(projectId);
-      setProject(data);
-      if (!selectedMarkdownFileId) {
-        const firstMarkdownFile = data.files.find((file) => file.extension === '.md');
-        if (firstMarkdownFile) {
-          setSelectedMarkdownFileId(firstMarkdownFile.id);
-        }
-      }
-    } catch (requestError) {
-      setError(requestError.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
+    async function loadProject() {
+      try {
+        setLoading(true);
+        setError('');
+        const data = await api.getProject(projectId);
+        setProject(data);
+        const firstMarkdownFile = data.files.find((file) => file.extension === '.md');
+        setSelectedMarkdownFileId((current) => current || firstMarkdownFile?.id || '');
+      } catch (requestError) {
+        setError(requestError.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
     loadProject();
   }, [projectId]);
 
